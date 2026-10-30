@@ -43,18 +43,33 @@ def extraer_funciones(directorio) -> Iterator[Funcion]:
     directorio = Path(directorio)
 
     for path in directorio.rglob("*.py"):
+        yield from _extraer_funciones_archivo(path, directorio)
 
-        try:
-            arbol = ast.parse(path.read_text(encoding="utf-8"))
-        except (SyntaxError, UnicodeDecodeError) as e:
-            logger.warning(f"Error al parsear el archivo '{path}': {e}")
-            continue
 
-        for nodo in ast.walk(arbol):
-            if isinstance(nodo, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                yield Funcion(
-                    nombre=nodo.name,
-                    archivo=str(path.relative_to(directorio)),
-                    linea=nodo.lineno,
-                    AST=nodo
-                )
+def cargar_funcion(directorio, identificador: str) -> Funcion | None:
+
+    directorio = Path(directorio)
+    path_archivo, nombre = identificador.rsplit(":", 1)
+
+    for funcion in _extraer_funciones_archivo(directorio / path_archivo, directorio):
+        if funcion.nombre == nombre:
+            return funcion
+    return None
+
+
+def _extraer_funciones_archivo(path: Path, directorio: Path) -> Iterator[Funcion]:
+
+    try:
+        arbol = ast.parse(path.read_text(encoding="utf-8"))
+    except (OSError, SyntaxError, UnicodeDecodeError) as e:
+        logger.warning(f"Error al parsear el archivo '{path}': {e}")
+        return
+
+    for nodo in ast.walk(arbol):
+        if isinstance(nodo, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            yield Funcion(
+                nombre=nodo.name,
+                archivo=str(path.relative_to(directorio)),
+                linea=nodo.lineno,
+                AST=nodo
+            )
