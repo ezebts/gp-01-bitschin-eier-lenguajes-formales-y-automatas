@@ -23,6 +23,10 @@ class Funcion:
     AST_NORMALIZADO: ast.AST = None
     AST_NORMALIZADO_TOKENS: list[str] = None
 
+    @property
+    def identificador(self) -> str:
+        return f"{self.archivo}:{self.nombre}"
+
     def __post_init__(self):
         self._mapa_variables = {}
         self.AST_NORMALIZADO_TOKENS = []
@@ -73,8 +77,10 @@ class Funcion:
 
 
 def extraer_funciones(directorio) -> Iterator[Funcion]:
-    
-    for path in Path(directorio).rglob("*.py"):
+
+    directorio = Path(directorio)
+
+    for path in directorio.rglob("*.py"):
         
         try:
             arbol = ast.parse(path.read_text(encoding="utf-8"))
@@ -86,7 +92,7 @@ def extraer_funciones(directorio) -> Iterator[Funcion]:
             if isinstance(nodo, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 yield Funcion(
                     nombre=nodo.name,
-                    archivo=str(path),
+                    archivo=str(path.relative_to(directorio)),
                     linea=nodo.lineno,
                     AST=nodo
                 )
@@ -147,11 +153,11 @@ if __name__ == "__main__":
     
     funcion_saludar, funcion_despedir, *_ = extraer_funciones(path_directorio)
     
-    print("\nFuncion saludar:")
+    print(f"\nFuncion {funcion_saludar.identificador}:")
     dibujar_arbolito(funcion_saludar.AST_NORMALIZADO)
     print("\nPreorder: ", funcion_saludar.AST_NORMALIZADO_TOKENS)
     
-    print("\nFuncion despedir:")
+    print(f"\nFuncion {funcion_despedir.identificador}:")
     dibujar_arbolito(funcion_despedir.AST_NORMALIZADO)
     print("\nPreorder: ", funcion_despedir.AST_NORMALIZADO_TOKENS)
     print("\n" )
