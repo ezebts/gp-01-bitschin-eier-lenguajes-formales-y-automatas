@@ -1,16 +1,25 @@
+from bisect import bisect
+
 from buscar_similares.extraccion import Funcion, extraer_funciones
 from buscar_similares.similitud import jacad
 
 
-def cargar_funciones(directorio) -> dict[str, Funcion]:
-    return {funcion.identificador: funcion for funcion in extraer_funciones(directorio)}
+def cargar_por_similitud(directorio, objetivo: Funcion, n: int = 3) -> tuple[list[Funcion], list[float]]:
 
+    funciones = []
+    indice = []
 
-def ordenar_por_similitud(funciones: dict[str, Funcion], objetivo: Funcion, n: int = 3) -> dict[str, float]:
+    for funcion in extraer_funciones(directorio):
 
-    similitudes = {}
-    for identificador, funcion in funciones.items():
-        if identificador != objetivo.identificador:
-            similitudes[identificador] = jacad(objetivo.AST_NORMALIZADO_TOKENS, funcion.AST_NORMALIZADO_TOKENS, n)
+        if funcion.identificador == objetivo.identificador:
+            continue
 
-    return dict(sorted(similitudes.items(), key=lambda item: item[1], reverse=True))
+        similitud = jacad(objetivo.AST_NORMALIZADO_TOKENS, funcion.AST_NORMALIZADO_TOKENS, n)
+
+        pos = bisect(indice, similitud)
+
+        funciones.insert(pos, funcion)
+        indice.insert(pos, similitud)
+
+    # bisect ordena de menor a mayor: se dan vuelta para que la más similar quede primera
+    return funciones[::-1], indice[::-1]
