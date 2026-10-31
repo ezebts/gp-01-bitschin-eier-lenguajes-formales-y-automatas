@@ -31,11 +31,11 @@ def main_cli():
         if objetivo is None:
             parser.error("el código pegado tiene que empezar con una función (def ...)")
 
-    coincidencias = buscar_por_similitud(args.dir, objetivo)
+    coincidencias = buscar_por_similitud(args.dir, objetivo, topk=args.top)
 
     print(f"Función objetivo: {objetivo.nombre} ({objetivo.archivo}:{objetivo.linea})\n")
     print(f"{'#':>3}  {'Score':>6}  {'¿Duplicado?':<11}  Ubicación")
-    for posicion, coincidencia in enumerate(coincidencias[:args.top], start=1):
+    for posicion, coincidencia in enumerate(coincidencias, start=1):
         funcion = coincidencia.funcion
         duplicado = "Si" if coincidencia.es_duplicado else "No"
         print(f"{posicion:>3}  {coincidencia.similitud:>6.3f}  {duplicado:<11}  {funcion.archivo}:{funcion.linea}  {funcion.nombre}")

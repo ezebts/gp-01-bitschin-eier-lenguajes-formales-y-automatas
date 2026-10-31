@@ -18,7 +18,7 @@ class Coincidencia:
         return self.similitud >= UMBRAL_DUPLICADO
 
 
-def buscar_por_similitud(directorio, objetivo: Funcion, ngramas: int = 3) -> list[Coincidencia]:
+def buscar_por_similitud(directorio, objetivo: Funcion, ngramas: int = 3, topk: int = 5) -> list[Coincidencia]:
 
     coincidencias = []
 
@@ -33,5 +33,6 @@ def buscar_por_similitud(directorio, objetivo: Funcion, ngramas: int = 3) -> lis
         # bisect ordena de menor a mayor: con -similitud la más similar queda primera
         pos = bisect(coincidencias, -similitud, key=lambda match: -match.similitud)
         coincidencias.insert(pos, coincidencia)
+        coincidencias = coincidencias[:topk]
 
     return coincidencias
