@@ -51,7 +51,19 @@ def extraer_funciones(directorio) -> Iterator[Funcion]:
         yield from _extraer_funciones_archivo(path, directorio)
 
 
-def cargar_funcion(directorio, identificador: str) -> Funcion | None:
+def cargar_funcion(codigo: str) -> Funcion | None:
+
+    nodo = ast.parse(codigo).body[0]
+    if not isinstance(nodo, (ast.FunctionDef, ast.AsyncFunctionDef)):
+        return None
+
+    return Funcion(nombre=nodo.name, archivo="<código>", linea=nodo.lineno, AST=nodo)
+
+
+def cargar_funcion_desde_directorio(directorio, identificador: str) -> Funcion | None:
+
+    if ":" not in identificador:
+        return None
 
     directorio = Path(directorio)
     path_archivo, nombre = identificador.rsplit(":", 1)

@@ -1,7 +1,6 @@
-import ast
 import argparse
 
-from buscar_similares.extraccion import Funcion, cargar_funcion
+from buscar_similares.extraccion import cargar_funcion, cargar_funcion_desde_directorio
 from buscar_similares.busqueda import buscar_por_similitud
 
 
@@ -11,7 +10,7 @@ UMBRAL_DUPLICADO = 0.7
 
 def crear_parser() -> argparse.ArgumentParser:
 
-    parser = argparse.ArgumentParser(description="Busca funciones similares comparando sus AST normalizados.")
+    parser = argparse.ArgumentParser("buscar_similares", description="Busca funciones similares comparando sus AST normalizados.")
     parser.add_argument("--dir", required=True, help="carpeta con los archivos .py donde buscar")
 
     objetivo = parser.add_mutually_exclusive_group(required=True)
@@ -28,14 +27,13 @@ def main_cli():
     args = parser.parse_args()
 
     if args.funcion:
-        objetivo = cargar_funcion(args.dir, args.funcion) if ":" in args.funcion else None
+        objetivo = cargar_funcion_desde_directorio(args.dir, args.funcion)
         if objetivo is None:
             parser.error(f"no se encontró la función '{args.funcion}' (formato: ARCHIVO.py:FUNCION)")
     else:
-        nodo = ast.parse(args.codigo).body[0]
-        if not isinstance(nodo, (ast.FunctionDef, ast.AsyncFunctionDef)):
+        objetivo = cargar_funcion(args.codigo)
+        if objetivo is None:
             parser.error("el código pegado tiene que empezar con una función (def ...)")
-        objetivo = Funcion(nombre=nodo.name, archivo="<pegado>", linea=nodo.lineno, AST=nodo)
 
     resultados = buscar_por_similitud(args.dir, objetivo, N_GRAMAS)
 
