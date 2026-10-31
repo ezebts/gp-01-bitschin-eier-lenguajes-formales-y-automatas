@@ -2,7 +2,7 @@ import ast
 import argparse
 
 from buscar_similares.extraccion import Funcion, cargar_funcion
-from buscar_similares.almacenamiento import cargar_por_similitud
+from buscar_similares.busqueda import buscar_por_similitud
 
 
 N_GRAMAS = 3
@@ -37,10 +37,10 @@ def main_cli():
             parser.error("el código pegado tiene que empezar con una función (def ...)")
         objetivo = Funcion(nombre=nodo.name, archivo="<pegado>", linea=nodo.lineno, AST=nodo)
 
-    funciones, similitudes = cargar_por_similitud(args.dir, objetivo, N_GRAMAS)
+    resultados = buscar_por_similitud(args.dir, objetivo, N_GRAMAS)
 
     print(f"Función objetivo: {objetivo.nombre} ({objetivo.archivo}:{objetivo.linea})\n")
     print(f"{'#':>3}  {'Score':>6}  {'¿Duplicado?':<11}  Ubicación")
-    for posicion, (funcion, similitud) in enumerate(zip(funciones[:args.top], similitudes[:args.top]), start=1):
+    for posicion, (similitud, funcion) in enumerate(resultados[:args.top], start=1):
         duplicado = "SÍ" if similitud >= UMBRAL_DUPLICADO else "no"
         print(f"{posicion:>3}  {similitud:>6.3f}  {duplicado:<11}  {funcion.archivo}:{funcion.linea}  {funcion.nombre}")

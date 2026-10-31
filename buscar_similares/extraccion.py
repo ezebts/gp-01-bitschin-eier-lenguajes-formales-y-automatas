@@ -5,7 +5,6 @@ from logging import getLogger
 from dataclasses import dataclass
 from collections.abc import Iterator
 
-from buscar_similares.busqueda import recorrer_en_preorder
 from buscar_similares.normalizacion import normalizar_nodo_funcion
 
 
@@ -36,6 +35,12 @@ class Funcion:
             tokens_normalizados = normalizar_nodo_funcion(nodo, self._mapa_variables)
             self.AST_NORMALIZADO_TOKENS.append(type(nodo).__name__)
             self.AST_NORMALIZADO_TOKENS.extend(tokens_normalizados)
+
+
+def recorrer_en_preorder(AST: ast.AST) -> Iterator[ast.AST]:
+    yield AST
+    for hijo in ast.iter_child_nodes(AST):
+        yield from recorrer_en_preorder(hijo)
 
 
 def extraer_funciones(directorio) -> Iterator[Funcion]:
