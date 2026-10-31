@@ -1,4 +1,5 @@
 import ast
+import builtins
 
 
 def quitar_docstring(nodo: ast.FunctionDef | ast.AsyncFunctionDef):
@@ -33,7 +34,13 @@ def normalizar_nodo_funcion(nodo: ast.AST, mapa_variables: dict[str, str]) -> li
         tokens_normalizados.append(nodo.arg)
 
     elif isinstance(nodo, ast.Name):
-        nodo.id = normalizar_variable(nodo.id, mapa_variables)
+        lectura_builtin = (
+            isinstance(nodo.ctx, ast.Load)
+            and nodo.id in vars(builtins)
+            and nodo.id not in mapa_variables
+        )
+        if not lectura_builtin:
+            nodo.id = normalizar_variable(nodo.id, mapa_variables)
         tokens_normalizados.append(nodo.id)
 
     elif isinstance(nodo, ast.Constant):
