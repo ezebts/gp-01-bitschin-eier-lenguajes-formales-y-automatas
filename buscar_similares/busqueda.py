@@ -1,22 +1,37 @@
 from bisect import bisect
+from dataclasses import dataclass
 
 from buscar_similares.extraccion import Funcion, extraer_funciones
 from buscar_similares.similitud import jacad
 
 
-def buscar_por_similitud(directorio, objetivo: Funcion, n: int = 3) -> list[tuple[float, Funcion]]:
+UMBRAL_DUPLICADO = 0.7
 
-    resultados = []
+
+@dataclass
+class Coincidencia:
+    funcion: Funcion
+    similitud: float
+
+    @property
+    def es_duplicado(self) -> bool:
+        return self.similitud >= UMBRAL_DUPLICADO
+
+
+def buscar_por_similitud(directorio, objetivo: Funcion, ngramas: int = 3) -> list[Coincidencia]:
+
+    coincidencias = []
 
     for funcion in extraer_funciones(directorio):
 
         if funcion.identificador == objetivo.identificador:
             continue
 
-        similitud = jacad(objetivo.AST_NORMALIZADO_TOKENS, funcion.AST_NORMALIZADO_TOKENS, n)
+        similitud = jacad(objetivo.AST_NORMALIZADO_TOKENS, funcion.AST_NORMALIZADO_TOKENS, ngramas)
+        coincidencia = Coincidencia(funcion, similitud)
 
         # bisect ordena de menor a mayor: con -similitud la más similar queda primera
-        pos = bisect(resultados, -similitud, key=lambda match: -match[0])
-        resultados.insert(pos, (similitud, funcion))
+        pos = bisect(coincidencias, -similitud, key=lambda match: -match.similitud)
+        coincidencias.insert(pos, coincidencia)
 
-    return resultados
+    return coincidencias

@@ -4,10 +4,6 @@ from buscar_similares.extraccion import cargar_funcion, cargar_funcion_desde_dir
 from buscar_similares.busqueda import buscar_por_similitud
 
 
-N_GRAMAS = 3
-UMBRAL_DUPLICADO = 0.7
-
-
 def crear_parser() -> argparse.ArgumentParser:
 
     parser = argparse.ArgumentParser("buscar_similares", description="Busca funciones similares comparando sus AST normalizados.")
@@ -35,10 +31,11 @@ def main_cli():
         if objetivo is None:
             parser.error("el código pegado tiene que empezar con una función (def ...)")
 
-    resultados = buscar_por_similitud(args.dir, objetivo, N_GRAMAS)
+    coincidencias = buscar_por_similitud(args.dir, objetivo)
 
     print(f"Función objetivo: {objetivo.nombre} ({objetivo.archivo}:{objetivo.linea})\n")
     print(f"{'#':>3}  {'Score':>6}  {'¿Duplicado?':<11}  Ubicación")
-    for posicion, (similitud, funcion) in enumerate(resultados[:args.top], start=1):
-        duplicado = "SÍ" if similitud >= UMBRAL_DUPLICADO else "no"
-        print(f"{posicion:>3}  {similitud:>6.3f}  {duplicado:<11}  {funcion.archivo}:{funcion.linea}  {funcion.nombre}")
+    for posicion, coincidencia in enumerate(coincidencias[:args.top], start=1):
+        funcion = coincidencia.funcion
+        duplicado = "Si" if coincidencia.es_duplicado else "No"
+        print(f"{posicion:>3}  {coincidencia.similitud:>6.3f}  {duplicado:<11}  {funcion.archivo}:{funcion.linea}  {funcion.nombre}")
