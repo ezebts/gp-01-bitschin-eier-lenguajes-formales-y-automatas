@@ -46,6 +46,18 @@ class TestBuscarPorSimilitud(unittest.TestCase):
         maximo = get_coincidencia(coincidencias, "maximo")
         self.assertFalse(maximo.es_duplicado)
 
+    def test_dominios_distintos_no_es_duplicado(self):
+        coincidencias = buscar("dominios_distintos", "pares.py:factorial")
+        parsear = get_coincidencia(coincidencias, "parsear_enteros")
+        self.assertFalse(parsear.es_duplicado)
+
+    def test_clon_reordenado_es_duplicado(self):
+        coincidencias = buscar("reordenado", "pares.py:ordenar_ambas")
+        reordenado = get_coincidencia(coincidencias, "ordenar_ambas_v2")
+        self.assertEqual(reordenado.similitud, 1.0)
+        self.assertTrue(reordenado.es_duplicado)
+        self.assertEqual(coincidencias[0].funcion.nombre, "ordenar_ambas_v2")
+
     def test_no_incluye_el_objetivo(self):
         coincidencias = buscar("renombre", "pares.py:sumar")
         nombres = [c.funcion.nombre for c in coincidencias]
