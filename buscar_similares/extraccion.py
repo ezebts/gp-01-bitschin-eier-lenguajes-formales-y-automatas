@@ -79,7 +79,7 @@ def _extraer_funciones_archivo(path: Path, directorio: Path) -> Iterator[Funcion
     try:
         arbol = ast.parse(path.read_text(encoding="utf-8"))
     except (OSError, SyntaxError, UnicodeDecodeError) as e:
-        logger.warning(f"Error al parsear el archivo '{path}': {e}")
+        logger.warning(f"[WARN] Error al parsear el archivo '{path}': {e}")
         return
 
     for nodo in ast.walk(arbol):
